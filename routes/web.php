@@ -2,8 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use League\Csv\Reader;
-use League\Csv\CharsetConverter;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,7 +18,29 @@ Route::get('/', function () {
     $csv->setHeaderOffset(0);
     $records = $csv->getRecords();
 
+    $new_products = [];
+
+
     foreach ($records as $record) {
-        dd($record);
+        $price = round((int) $record['Цена'] * 1.3);
+
+        $title = strip_tags($record['Наименование']);
+        $new_products[] = [
+            'Код_товара' => $record['Код'],
+            'Название_позиции' => $title,
+            'Цена' =>  $price,
+            'Валюта' => 'UAH',
+            'Единица_измерения' => 'шт',
+        ];
     }
+
+    // create a new file
+    $fp = fopen(storage_path('app/public/new.csv'), 'w');
+    // save the column headers
+    fputcsv($fp, ['Код_товара', 'Название_позиции', 'Цена', 'Валюта', 'Единица_измерения']);
+    // save each row of the data
+    foreach ($new_products as $row) {
+        fputcsv($fp, $row);
+    }
+    dd($new_products);
 });
